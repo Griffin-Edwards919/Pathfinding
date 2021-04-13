@@ -1,6 +1,6 @@
 from queue import PriorityQueue
-import numpy as np
-import math
+import numpy
+from PIL import Image, ImageDraw
 
 class State(object):
     def __init__(self, value, location, parent, start=0, goal=0):
@@ -66,6 +66,7 @@ class AStar_Solver:
 
     def solve(self):
         startState = Sub_State(getValue(self.start[0], self.start[1]), (self.start[0], self.start[1]), 0, self.start, self.goal)
+        startState.createChildren()
         self.priorityQueue.put(startState)
         while not self.path and self.priorityQueue.qsize():
             closestChild = self.priorityQueue.get()
@@ -84,14 +85,23 @@ def getValue(r, c): return MAP[r][c]
 
 
 FILE = "Colorado_844x480.dat"
-MAP = np.loadtxt(FILE)
-STARTING_LOCATION = [226, 0]
+MAP = numpy.loadtxt(FILE)
+im = Image.open("plainMountains.png")
+draw = ImageDraw.Draw(im)
 
 if __name__ == '__main__':
-    start = STARTING_LOCATION
+    min_path = None
     goal = len(MAP[0]) - 1
     print('starting...')
-    solver = AStar_Solver(start, goal)
-    path = solver.solve()
-    print(path)
+    for x in range(len(MAP)):
+        start = [x, 0]
+        solver = AStar_Solver(start, goal)
+        path = solver.solve()
+        if not min_path or len(min_path) > len(path): min_path = path
+        print(start)
+    print(min_path)
+    draw = ImageDraw.Draw(im)
+    for point in min_path:
+        draw.point((point[1], point[0]), 'red')
+    im.show()
 
